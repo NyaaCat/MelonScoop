@@ -51,6 +51,7 @@ public class BootStrap extends JavaPlugin {
         this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::save, 6000, 6000/*Auto saving per five minute*/);
         this.getServer().getPluginManager().registerEvents(new LoginListener(this), this);
         this.getCommand("dig").setExecutor(new DigCommand(this));
+        this.getLogger().info(ChatColor.DARK_AQUA + "Done! " + uniqueIDIndexMap.size() + " players with " + addressIndexMap.size() + " IP addresses loaded.");
     }
 
     private void setup() throws IOException {
@@ -114,8 +115,6 @@ public class BootStrap extends JavaPlugin {
             }
             this.getLogger().info(ChatColor.DARK_AQUA + "Reading server log files... " + (++readed) + "/" + fileNumber + " completed.");
         }
-        this.getLogger().info(ChatColor.DARK_AQUA + "Done! " + uniqueIDIndexMap.size() + " players with " + addressIndexMap.size() + " IP address loaded.");
-
     }
 
     @Override

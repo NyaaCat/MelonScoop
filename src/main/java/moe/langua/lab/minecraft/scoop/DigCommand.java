@@ -30,14 +30,9 @@ public class DigCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] args) {
-        if (commandSender instanceof Player) {
-            if (commandSender.hasPermission("melonscoop.dig")) {
-                return false;
-            }
-        }
         instance.getServer().getScheduler().runTaskAsynchronously(instance, () -> {
             if (args.length != 2) {
-                commandSender.sendMessage(ChatColor.DARK_AQUA + "/dig <player|ipaddress> <PlayerName|IPAddress>");
+                commandSender.sendMessage(ChatColor.DARK_AQUA + "/dig <player|ip> <PlayerName|IPAddress>");
             }
             if (args[0].equalsIgnoreCase("player")) {
                 UUID playerUniqueID;
@@ -128,7 +123,7 @@ public class DigCommand implements CommandExecutor {
                     commandSender.sendMessage(stringBuilder.toString());
                 }
             } else {
-                commandSender.sendMessage(ChatColor.DARK_AQUA + "/dig <player|ip> <PlayerName|IPAddress>");
+                commandSender.sendMessage(ChatColor.DARK_AQUA + "/dig <player|ip> <PlayerName|ip>");
             }
         });
         return true;

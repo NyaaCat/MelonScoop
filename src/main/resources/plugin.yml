@@ -4,5 +4,5 @@ name: "MelonScoop"
 api-version: "1.13"
 commands:
   dig:
-    usage: /dig <player|ipaddress> <PlayerName|IPAddress>
+    usage: /dig <player|ip> <PlayerName|IPAddress>
     permission: melonscoop.dig
