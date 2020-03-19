@@ -74,71 +74,70 @@ public class BootStrap extends JavaPlugin {
             }
             String line;
             while ((line = reader.readLine()) != null) {
-                if (line.length() < 35) continue;
-                boolean isLoginMessage = line.charAt(33) != '[' && line.contains("] logged in with entity id ");
-                boolean isUniqueIDMessage = line.substring(10, 32).equalsIgnoreCase(" [User Authenticator #");
-                if (isLoginMessage) {
-                    if(line.substring(PLAYER_NAME_OFFSET).length()<60) continue;
-                    String sub = line.substring(PLAYER_NAME_OFFSET, line.indexOf("logged in"));
-                    String playerName = sub.substring(0, sub.indexOf("["));
-                    String playerIPAddress = sub.substring(sub.indexOf("[/") + 2, sub.lastIndexOf(":"));
-                    InetAddress playerINetAddress = InetAddress.getByName(playerIPAddress);
-                    UUID playerUniqueID = nameToUniqueIDMap.get(playerName);
-                    if (playerUniqueID == null) {
-                        this.getLogger().warning("Player " + playerName + " has no unique ID information recorded, Ignore.");
-                        continue;
+                try {
+                    if (line.length() < 35) continue;
+                    boolean isLoginMessage = line.charAt(33) != '[' && line.contains("] logged in with entity id ");
+                    boolean isUniqueIDMessage = line.substring(10, 32).equalsIgnoreCase(" [User Authenticator #");
+                    if (isLoginMessage) {
+                        if (line.substring(PLAYER_NAME_OFFSET).length() < 60) continue;
+                        String sub = line.substring(PLAYER_NAME_OFFSET, line.indexOf("logged in"));
+                        String playerName = sub.substring(0, sub.indexOf("["));
+                        String playerIPAddress = sub.substring(sub.indexOf("[/") + 2, sub.lastIndexOf(":"));
+                        InetAddress playerINetAddress = InetAddress.getByName(playerIPAddress);
+                        UUID playerUniqueID = nameToUniqueIDMap.get(playerName);
+                        if (playerUniqueID == null) continue; /*ignore damaged log records*/
+                        int hour = Integer.parseInt(line.substring(1, 3));
+                        int minute = Integer.parseInt(line.substring(4, 6));
+                        int second = Integer.parseInt(line.substring(7, 9));
+                        long dayTimeInMillSeconds = (hour * 3600 + minute * 60 + second) * 1000;
+                        long playerLoginTime;
+                        long dayStart;
+                        if (x.getName().equalsIgnoreCase("latest.log")) {
+                            dayStart = x.lastModified() - (x.lastModified() % 86400000)/*a day*/;
+                            playerLoginTime = dayStart + dayTimeInMillSeconds;
+                        } else {
+                            int year = Integer.parseInt(x.getName().substring(0, 4));
+                            int month = Integer.parseInt(x.getName().substring(5, 7));
+                            int day = Integer.parseInt(x.getName().substring(8, 10));
+                            Calendar c = Calendar.getInstance();
+                            c.set(year, month - 1/*JANUARY is 0*/, day);
+                            playerLoginTime = c.getTimeInMillis() + dayTimeInMillSeconds;
+                        }
+                        addLoginRecord(playerUniqueID, playerINetAddress, playerLoginTime);
+                    } else if (isUniqueIDMessage) {
+                        String sub = line.substring(33);
+                        if (sub.length() < 64) continue;
+                        String playerName = sub.substring(sub.indexOf("/INFO]: UUID of player ") + 23, sub.indexOf(" is "));
+                        String playerUniqueID = sub.substring(sub.indexOf(" is ") + 4);
+                        nameToUniqueIDMap.put(playerName, UUID.fromString(playerUniqueID));
                     }
-                    int hour = Integer.parseInt(line.substring(1, 3));
-                    int minute = Integer.parseInt(line.substring(4, 6));
-                    int second = Integer.parseInt(line.substring(7, 9));
-                    long dayTimeInMillSeconds = (hour * 3600 + minute * 60 + second) * 1000;
-                    long playerLoginTime;
-                    long dayStart;
-                    if (x.getName().equalsIgnoreCase("latest.log")) {
-                        dayStart = x.lastModified() - (x.lastModified() % 86400000)/*a day*/;
-                        playerLoginTime = dayStart + dayTimeInMillSeconds;
-                    } else {
-                        int year = Integer.parseInt(x.getName().substring(0, 4));
-                        int month = Integer.parseInt(x.getName().substring(5, 7));
-                        int day = Integer.parseInt(x.getName().substring(8, 10));
-                        Calendar c = Calendar.getInstance();
-                        c.set(year, month - 1/*JANUARY is 0*/, day);
-                        playerLoginTime = c.getTimeInMillis() + dayTimeInMillSeconds;
-                    }
-                    addLoginRecord(playerUniqueID, playerINetAddress, playerLoginTime);
-                } else if (isUniqueIDMessage) {
-                    String sub = line.substring(33);
-                    if(sub.length()<64) continue;
-                    String playerName = sub.substring(sub.indexOf("/INFO]: UUID of player ") + 23, sub.indexOf(" is "));
-                    String playerUniqueID = sub.substring(sub.indexOf(" is ") + 4);
-                    nameToUniqueIDMap.put(playerName, UUID.fromString(playerUniqueID));
-                }
+                } catch (IndexOutOfBoundsException ignore){ /*ignore unknown IndexOutOfBoundsException*/}
             }
             this.getLogger().info(ChatColor.DARK_AQUA + "Reading server log files... " + (++readed) + "/" + fileNumber + " completed.");
         }
     }
 
     @Override
-    public void onDisable(){
+    public void onDisable() {
         save();
     }
 
-    public synchronized HashMap<Long,InetAddress> lookup(UUID uniqueID){
-        if(!uniqueIDIndexMap.containsValue(uniqueID)) return new HashMap<>();
-        HashMap<Integer,Long> playerAddressDataMap = getPlayerAddressData(uniqueID);
-        HashMap<Long,InetAddress> result = new HashMap<>();
-        for(int x:playerAddressDataMap.keySet()){
-            result.put(playerAddressDataMap.get(x),addressIndexMap.get(x));
+    public synchronized HashMap<Long, InetAddress> lookup(UUID uniqueID) {
+        if (!uniqueIDIndexMap.containsValue(uniqueID)) return new HashMap<>();
+        HashMap<Integer, Long> playerAddressDataMap = getPlayerAddressData(uniqueID);
+        HashMap<Long, InetAddress> result = new HashMap<>();
+        for (int x : playerAddressDataMap.keySet()) {
+            result.put(playerAddressDataMap.get(x), addressIndexMap.get(x));
         }
         return result;
     }
 
-    public synchronized HashMap<Long,UUID> lookup(InetAddress inetAddress){
-        if(!addressIndexMap.containsValue(inetAddress)) return new HashMap<>();
-        HashMap<Integer,Long> addressServedPlayerDataMap = getAddressServedPlayerData(inetAddress);
-        HashMap<Long,UUID> result = new HashMap<>();
-        for(int x: addressServedPlayerDataMap.keySet()){
-            result.put(addressServedPlayerDataMap.get(x),uniqueIDIndexMap.get(x));
+    public synchronized HashMap<Long, UUID> lookup(InetAddress inetAddress) {
+        if (!addressIndexMap.containsValue(inetAddress)) return new HashMap<>();
+        HashMap<Integer, Long> addressServedPlayerDataMap = getAddressServedPlayerData(inetAddress);
+        HashMap<Long, UUID> result = new HashMap<>();
+        for (int x : addressServedPlayerDataMap.keySet()) {
+            result.put(addressServedPlayerDataMap.get(x), uniqueIDIndexMap.get(x));
         }
         return result;
     }
