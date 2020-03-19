@@ -74,12 +74,11 @@ public class BootStrap extends JavaPlugin {
             }
             String line;
             while ((line = reader.readLine()) != null) {
-                if (line.length() < 35) {
-                    continue;
-                }
+                if (line.length() < 35) continue;
                 boolean isLoginMessage = line.charAt(33) != '[' && line.contains("] logged in with entity id ");
                 boolean isUniqueIDMessage = line.substring(10, 32).equalsIgnoreCase(" [User Authenticator #");
                 if (isLoginMessage) {
+                    if(line.substring(PLAYER_NAME_OFFSET).length()<60) continue;
                     String sub = line.substring(PLAYER_NAME_OFFSET, line.indexOf("logged in"));
                     String playerName = sub.substring(0, sub.indexOf("["));
                     String playerIPAddress = sub.substring(sub.indexOf("[/") + 2, sub.lastIndexOf(":"));
@@ -108,8 +107,10 @@ public class BootStrap extends JavaPlugin {
                     }
                     addLoginRecord(playerUniqueID, playerINetAddress, playerLoginTime);
                 } else if (isUniqueIDMessage) {
-                    String playerName = line.substring(line.indexOf("UUID of player ") + 15, line.indexOf(" is "));
-                    String playerUniqueID = line.substring(line.indexOf(" is ") + 4);
+                    String sub = line.substring(33);
+                    if(sub.length()<64) continue;
+                    String playerName = sub.substring(sub.indexOf("/INFO]: UUID of player ") + 23, sub.indexOf(" is "));
+                    String playerUniqueID = sub.substring(sub.indexOf(" is ") + 4);
                     nameToUniqueIDMap.put(playerName, UUID.fromString(playerUniqueID));
                 }
             }

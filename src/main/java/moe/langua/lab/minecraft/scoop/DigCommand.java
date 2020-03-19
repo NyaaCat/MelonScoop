@@ -33,6 +33,7 @@ public class DigCommand implements CommandExecutor {
         instance.getServer().getScheduler().runTaskAsynchronously(instance, () -> {
             if (args.length != 2) {
                 commandSender.sendMessage(ChatColor.DARK_AQUA + "/dig <player|ip> <PlayerName|IPAddress>");
+                return;
             }
             if (args[0].equalsIgnoreCase("player")) {
                 UUID playerUniqueID;
@@ -84,7 +85,7 @@ public class DigCommand implements CommandExecutor {
                             for (UUID uniqueID : playerMap.values()) {
                                 OfflinePlayer player = Bukkit.getOfflinePlayer(uniqueID);
                                 if (player.isBanned()) {
-                                    stringBuilder.append(ChatColor.RED).append(player.getName()).append(" (Banned)").append(ChatColor.YELLOW).append(", ");
+                                    stringBuilder.append(ChatColor.RED).append(player.getName()).append("(Banned)").append(ChatColor.YELLOW).append(", ");
                                 } else {
                                     stringBuilder.append(player.getName()).append(", ");
                                 }
@@ -117,7 +118,10 @@ public class DigCommand implements CommandExecutor {
                     stringBuilder.append(ChatColor.YELLOW).append("IP address ").append(inetAddress.toString()).append(" is associated with more than one players: \n");
                     ArrayList<Long> timeList = instance.sort(result.keySet());
                     for (long x : timeList) {
-                        stringBuilder.append(ChatColor.YELLOW).append("    -").append(Bukkit.getOfflinePlayer(result.get(x)).getName()).append(ChatColor.GRAY).append(ChatColor.ITALIC).append(" (").append(instance.dateFormatter.format(new Date(x))).append(")").append("\n");
+                        OfflinePlayer player = Bukkit.getOfflinePlayer(result.get(x));
+                        stringBuilder.append(ChatColor.YELLOW).append("    -").append(player.getName());
+                        if(player.isBanned()) stringBuilder.append(ChatColor.RED).append(" (Banned)");
+                        stringBuilder.append(ChatColor.GRAY).append(ChatColor.ITALIC).append(" (").append(instance.dateFormatter.format(new Date(x))).append(")").append("\n");
                     }
                     stringBuilder.delete(stringBuilder.length() - 1, stringBuilder.length());
                     commandSender.sendMessage(stringBuilder.toString());
