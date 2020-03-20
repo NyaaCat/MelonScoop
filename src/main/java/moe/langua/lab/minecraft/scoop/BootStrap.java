@@ -11,6 +11,7 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 public class BootStrap extends JavaPlugin {
@@ -22,6 +23,7 @@ public class BootStrap extends JavaPlugin {
     private Map<Integer, HashMap<Integer, Long>> uniqueIDToAddressMap;
     private Map<String, UUID> nameToUniqueIDMap = new HashMap<>();
     private static final int PLAYER_NAME_OFFSET = 33;
+    private Pattern UUID_REGEX_PATTERN = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
     @Override
     public void onEnable() {
@@ -34,7 +36,7 @@ public class BootStrap extends JavaPlugin {
             } catch (IOException e) {
                 e.printStackTrace();
                 this.getServer().getPluginManager().disablePlugin(this);
-                this.getLogger().warning("Exception occurred when indexing player data... Plugin will be disabled automatically. Please check the stack trace and delete the plugin data folder before next startup to restart player data index.");
+                this.getLogger().warning("Exception occurred when reading player data... Plugin will be disabled automatically. Please check the stack trace and delete the plugin data folder before next startup to restart player database build.");
                 return;
             }
         } else {
@@ -52,6 +54,7 @@ public class BootStrap extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new LoginListener(this), this);
         this.getCommand("dig").setExecutor(new DigCommand(this));
         this.getLogger().info(ChatColor.DARK_AQUA + "Done! " + uniqueIDIndexMap.size() + " players with " + addressIndexMap.size() + " IP addresses loaded.");
+
     }
 
     private void setup() throws IOException {
@@ -63,14 +66,18 @@ public class BootStrap extends JavaPlugin {
         File logFileFolder = new File("./logs");
         File[] logFiles = logFileFolder.listFiles();
         assert logFiles != null;
+        HashMap<Long, File> fileHashMap = new HashMap<>();
+        ArrayList<Long> timeList = sort(fileHashMap.keySet());
+        Collections.reverse(timeList);
         int fileNumber = logFiles.length;
         int readed = 0;
         BufferedReader reader;
-        for (File x : logFiles) {
-            if (!x.getName().endsWith(".gz")) {
-                reader = new BufferedReader(new InputStreamReader(new FileInputStream(x), StandardCharsets.UTF_8));
+        for (long x : timeList) {
+            File file = fileHashMap.get(x);
+            if (!file.getName().endsWith(".gz")) {
+                reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
             } else {
-                reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(x)), StandardCharsets.UTF_8));
+                reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(file)), StandardCharsets.UTF_8));
             }
             String line;
             while ((line = reader.readLine()) != null) {
@@ -92,13 +99,13 @@ public class BootStrap extends JavaPlugin {
                         long dayTimeInMillSeconds = (hour * 3600 + minute * 60 + second) * 1000;
                         long playerLoginTime;
                         long dayStart;
-                        if (x.getName().equalsIgnoreCase("latest.log")) {
-                            dayStart = x.lastModified() - (x.lastModified() % 86400000)/*a day*/;
+                        if (file.getName().equalsIgnoreCase("latest.log")) {
+                            dayStart = file.lastModified() - (file.lastModified() % 86400000)/*a day*/;
                             playerLoginTime = dayStart + dayTimeInMillSeconds;
                         } else {
-                            int year = Integer.parseInt(x.getName().substring(0, 4));
-                            int month = Integer.parseInt(x.getName().substring(5, 7));
-                            int day = Integer.parseInt(x.getName().substring(8, 10));
+                            int year = Integer.parseInt(file.getName().substring(0, 4));
+                            int month = Integer.parseInt(file.getName().substring(5, 7));
+                            int day = Integer.parseInt(file.getName().substring(8, 10));
                             Calendar c = Calendar.getInstance();
                             c.set(year, month - 1/*JANUARY is 0*/, day);
                             playerLoginTime = c.getTimeInMillis() + dayTimeInMillSeconds;
@@ -109,9 +116,10 @@ public class BootStrap extends JavaPlugin {
                         if (sub.length() < 64) continue;
                         String playerName = sub.substring(sub.indexOf("/INFO]: UUID of player ") + 23, sub.indexOf(" is "));
                         String playerUniqueID = sub.substring(sub.indexOf(" is ") + 4);
+                        if (!UUID_REGEX_PATTERN.matcher(playerUniqueID).matches()) continue;
                         nameToUniqueIDMap.put(playerName, UUID.fromString(playerUniqueID));
                     }
-                } catch (IndexOutOfBoundsException ignore){ /*ignore unknown IndexOutOfBoundsException*/}
+                } catch (IndexOutOfBoundsException ignore) { /*ignore unknown IndexOutOfBoundsException*/}
             }
             this.getLogger().info(ChatColor.DARK_AQUA + "Reading server log files... " + (++readed) + "/" + fileNumber + " completed.");
         }
