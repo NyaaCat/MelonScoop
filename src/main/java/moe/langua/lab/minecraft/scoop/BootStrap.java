@@ -30,18 +30,18 @@ public class BootStrap extends JavaPlugin {
         if (!this.getDataFolder().exists()) {
             try {
                 this.getDataFolder().mkdir();
-                this.getLogger().info(ChatColor.DARK_AQUA + "Starting to read player data from log files...");
+                this.getLogger().info(ChatColor.DARK_AQUA+"Initializing...");
                 setup();
                 save();
             } catch (IOException e) {
                 e.printStackTrace();
                 this.getServer().getPluginManager().disablePlugin(this);
-                this.getLogger().warning("Exception occurred when reading player data... Plugin will be disabled automatically. Please check the stack trace and delete the plugin data folder before next startup to restart player database build.");
+                this.getLogger().warning("Exception occurred when loading player data... Plugin will be disabled automatically. Please check the stack trace and delete the plugin data folder before next startup to restart player database build.");
                 return;
             }
         } else {
             try {
-                this.getLogger().info(ChatColor.DARK_AQUA + "Reading player data...");
+                this.getLogger().info(ChatColor.DARK_AQUA + "Loading player data...");
                 load();
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -67,12 +67,16 @@ public class BootStrap extends JavaPlugin {
         File[] logFiles = logFileFolder.listFiles();
         assert logFiles != null;
         HashMap<Long, File> fileHashMap = new HashMap<>();
+        for(File x:logFiles){
+            fileHashMap.put(x.lastModified(),x);
+        }
         ArrayList<Long> timeList = sort(fileHashMap.keySet());
         Collections.reverse(timeList);
-        int fileNumber = logFiles.length;
-        int readed = 0;
+        int fileNumber = timeList.size();
+        int read = 0;
         BufferedReader reader;
         for (long x : timeList) {
+            this.getLogger().info(ChatColor.DARK_AQUA +"Processing log file generated in "+dateFormatter.format(new Date(x))+" ("+(read++) + " out of "+ fileNumber + " files completed)");
             File file = fileHashMap.get(x);
             if (!file.getName().endsWith(".gz")) {
                 reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
@@ -121,7 +125,6 @@ public class BootStrap extends JavaPlugin {
                     }
                 } catch (IndexOutOfBoundsException ignore) { /*ignore unknown IndexOutOfBoundsException*/}
             }
-            this.getLogger().info(ChatColor.DARK_AQUA + "Reading server log files... " + (++readed) + "/" + fileNumber + " completed.");
         }
     }
 
