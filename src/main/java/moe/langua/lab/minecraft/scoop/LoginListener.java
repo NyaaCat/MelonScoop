@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -45,7 +44,7 @@ public class LoginListener implements Listener {
                     stringBuilder.delete(stringBuilder.length() - 1, stringBuilder.length());
                     instance.getLogger().warning(stringBuilder.toString());
                     for (Player x : Bukkit.getOnlinePlayers()) {
-                        if (x.hasPermission("melonscoop.dig")) x.sendMessage(stringBuilder.toString());
+                        if (x.hasPermission("melonscoop.alarm")) x.sendMessage(stringBuilder.toString());
                     }
                 }
             }

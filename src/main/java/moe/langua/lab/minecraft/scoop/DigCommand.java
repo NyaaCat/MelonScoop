@@ -16,11 +16,12 @@ import java.util.regex.Pattern;
 
 public class DigCommand implements CommandExecutor {
 
+    /*
     private static final String IPV4_ADDRESS_REGEX = "^(([01]?\\\\d\\\\d?|2[0-4]\\\\d|25[0-5])\\\\.){3}([01]?\\\\d\\\\d?|2[0-4]\\\\d|25[0-5])$";
     private static final Pattern IPV4_ADDRESS_REGEX_PATTERN = Pattern.compile(IPV4_ADDRESS_REGEX);
     private static final String IPV6_ADDRESS_REGEX = "(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))";
     private static final Pattern IPV6_ADDRESS_REGEX_PATTERN = Pattern.compile(IPV6_ADDRESS_REGEX);
-
+    */
 
     private BootStrap instance;
 
@@ -120,7 +121,7 @@ public class DigCommand implements CommandExecutor {
                     for (long x : timeList) {
                         OfflinePlayer player = Bukkit.getOfflinePlayer(result.get(x));
                         stringBuilder.append(ChatColor.YELLOW).append("    -").append(player.getName());
-                        if(player.isBanned()) stringBuilder.append(ChatColor.RED).append(" (Banned)");
+                        if (player.isBanned()) stringBuilder.append(ChatColor.RED).append(" (Banned)");
                         stringBuilder.append(ChatColor.GRAY).append(ChatColor.ITALIC).append(" (").append(instance.dateFormatter.format(new Date(x))).append(")").append("\n");
                     }
                     stringBuilder.delete(stringBuilder.length() - 1, stringBuilder.length());

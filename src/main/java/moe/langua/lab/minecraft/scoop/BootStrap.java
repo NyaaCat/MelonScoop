@@ -2,17 +2,18 @@ package moe.langua.lab.minecraft.scoop;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import org.bukkit.Bukkit;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class BootStrap extends JavaPlugin {
     public SimpleDateFormat dateFormatter = new SimpleDateFormat("MM/dd/yyyy");
@@ -52,9 +53,10 @@ public class BootStrap extends JavaPlugin {
         //register commands and listeners
         this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::save, 6000, 6000/*Auto saving per five minute*/);
         this.getServer().getPluginManager().registerEvents(new LoginListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new UpdateChecker(this),this);
         this.getCommand("dig").setExecutor(new DigCommand(this));
         this.getLogger().info(ChatColor.DARK_AQUA + "Done! " + uniqueIDIndexMap.size() + " players with " + addressIndexMap.size() + " IP addresses loaded.");
-
+        new Metrics(this, 6823); // setup bStats
     }
 
     private void setup() throws IOException {
@@ -79,9 +81,9 @@ public class BootStrap extends JavaPlugin {
             this.getLogger().info(ChatColor.DARK_AQUA +"Processing log file generated in "+dateFormatter.format(new Date(x))+" ("+(read++) + " out of "+ fileNumber + " files completed)");
             File file = fileHashMap.get(x);
             if (!file.getName().endsWith(".gz")) {
-                reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
+                reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), UTF_8));
             } else {
-                reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(file)), StandardCharsets.UTF_8));
+                reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(file)), UTF_8));
             }
             String line;
             while ((line = reader.readLine()) != null) {
