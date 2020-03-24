@@ -44,7 +44,7 @@ public class UpdateChecker implements Listener {
     public void onOperatorLogin(PlayerJoinEvent event) {
         if (!event.getPlayer().hasPermission("melonscoop.update")) return;
         if (!hasUpdate) return;
-        instance.getServer().getScheduler().runTaskLater(instance,()->event.getPlayer().sendMessage(ChatColor.YELLOW + "[MelonScoop] " + ChatColor.WHITE + "A new version of MelonScoop(" + latestVersion + ") is available. Click the link to download now: https://github.com/NyaaCat/MelonScoop/releases/" + latestVersion),20);
+        instance.getServer().getScheduler().runTaskLater(instance, () -> event.getPlayer().sendMessage(ChatColor.YELLOW + "[MelonScoop] " + ChatColor.WHITE + "A new version of MelonScoop(" + latestVersion + ") is available. Click the link to download now: https://github.com/NyaaCat/MelonScoop/releases/" + latestVersion), 20);
     }
 
     private static String jsonAPIGet(URL reqURL) throws JSONException, IOException {
@@ -57,11 +57,8 @@ public class UpdateChecker implements Listener {
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
         String tmpString;
         StringBuilder stringBuilder = new StringBuilder();
-        while (true) {
-            tmpString = bufferedReader.readLine();
-            if (tmpString == null) break;
+        while ((tmpString = bufferedReader.readLine()) != null)
             stringBuilder.append(tmpString);
-        }
         return stringBuilder.toString();
     }
 }
