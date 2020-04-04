@@ -1,5 +1,6 @@
 package moe.langua.lab.minecraft.scoop;
 
+import moe.langua.lab.minecraft.scoop.BootStrap;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

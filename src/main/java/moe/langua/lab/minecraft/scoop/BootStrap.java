@@ -2,6 +2,8 @@ package moe.langua.lab.minecraft.scoop;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import moe.langua.lab.minecraft.scoop.commands.Dig;
+import moe.langua.lab.minecraft.scoop.listeners.Login;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,8 +32,8 @@ public class BootStrap extends JavaPlugin {
     public void onEnable() {
         if (!this.getDataFolder().exists()) {
             try {
-                this.getDataFolder().mkdir();
                 this.getLogger().info(ChatColor.DARK_AQUA+"Initializing...");
+                this.getDataFolder().mkdir();
                 setup();
                 save();
             } catch (IOException e) {
@@ -52,9 +54,9 @@ public class BootStrap extends JavaPlugin {
         }
         //register commands and listeners
         this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::save, 6000, 6000/*Auto saving per five minute*/);
-        this.getServer().getPluginManager().registerEvents(new LoginListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new Login(this), this);
         this.getServer().getPluginManager().registerEvents(new UpdateChecker(this),this);
-        this.getCommand("dig").setExecutor(new DigCommand(this));
+        this.getCommand("dig").setExecutor(new Dig(this));
         this.getLogger().info(ChatColor.DARK_AQUA + "Done! " + uniqueIDIndexMap.size() + " players with " + addressIndexMap.size() + " IP addresses loaded.");
         new Metrics(this, 6823); // setup bStats
     }
@@ -78,7 +80,7 @@ public class BootStrap extends JavaPlugin {
         int read = 0;
         BufferedReader reader;
         for (long x : timeList) {
-            this.getLogger().info(ChatColor.DARK_AQUA +"Processing log file generated in "+dateFormatter.format(new Date(x))+" ("+(read++) + " out of "+ fileNumber + " files completed)");
+            this.getLogger().info(ChatColor.DARK_AQUA +"Processing log file generated in "+dateFormatter.format(new Date(x))+" ("+(read++) + " out of "+ fileNumber + " completed)");
             File file = fileHashMap.get(x);
             if (!file.getName().endsWith(".gz")) {
                 reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), UTF_8));

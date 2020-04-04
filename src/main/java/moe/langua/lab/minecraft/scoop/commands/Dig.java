@@ -1,5 +1,8 @@
-package moe.langua.lab.minecraft.scoop;
+package moe.langua.lab.minecraft.scoop.commands;
 
+import moe.langua.lab.minecraft.scoop.BootStrap;
+import moe.langua.lab.minecraft.scoop.utils.Result;
+import moe.langua.lab.minecraft.scoop.utils.Util;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -7,12 +10,15 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 
-public class DigCommand implements CommandExecutor {
+public class Dig implements CommandExecutor {
+    private HashMap<UUID, Result> resultHashMap = new HashMap<>();
 
     /*
     private static final String IPV4_ADDRESS_REGEX = "^(([01]?\\\\d\\\\d?|2[0-4]\\\\d|25[0-5])\\\\.){3}([01]?\\\\d\\\\d?|2[0-4]\\\\d|25[0-5])$";
@@ -23,7 +29,7 @@ public class DigCommand implements CommandExecutor {
 
     private BootStrap instance;
 
-    public DigCommand(BootStrap instance) {
+    public Dig(BootStrap instance) {
         this.instance = instance;
     }
 
@@ -34,7 +40,7 @@ public class DigCommand implements CommandExecutor {
                 commandSender.sendMessage(ChatColor.DARK_AQUA + "/dig <player|ip> <PlayerName|IPAddress>");
                 return;
             }
-            if (args[0].equalsIgnoreCase("player")) {
+            if (args[0].equalsIgnoreCase("player") || args[0].equalsIgnoreCase("p")) {
                 UUID playerUniqueID;
                 if (Bukkit.getPlayerExact(args[1]) == null) {
                     OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
@@ -46,10 +52,40 @@ public class DigCommand implements CommandExecutor {
                 } else {
                     playerUniqueID = Bukkit.getPlayerExact(args[1]).getUniqueId();
                 }
-                Map<Long, InetAddress> result = instance.lookup(playerUniqueID);
-                ArrayList<Long> timeList = instance.sort(result.keySet());
-                TextComponent component = new TextComponent("");
-            } else if (args[0].equalsIgnoreCase("ip")) {
+                Map<Long, InetAddress> lookupResult = instance.lookup(playerUniqueID);
+                HashMap<Long, TextComponent> resultMap = new HashMap<>();
+                for (long x : lookupResult.keySet()) {
+                    TextComponent line = new TextComponent(" - ");
+                    line.addExtra(lookupResult.get(x).toString());
+                    TextComponent date = new TextComponent("(" + instance.dateFormatter.format(new Date(x)) + ")");
+                    date.setColor(net.md_5.bungee.api.ChatColor.GRAY);
+                    date.setItalic(true);
+                    line.addExtra(" ");
+                    line.addExtra(date);
+                    HashMap<Long, UUID> playerMap = instance.lookup(lookupResult.get(x));
+                    if (playerMap.keySet().size() > 1) {
+                        line.setColor(net.md_5.bungee.api.ChatColor.YELLOW);
+                        TextComponent players = new TextComponent("(");
+                        List<Long> playerList = Util.asSortedList(instance.lookup(lookupResult.get(x)).keySet());
+                        for (long l : playerList) {
+                            players.addExtra(Util.getPlayer(playerMap.get(l)));
+                            if (playerList.indexOf(l) + 1 != playerList.size()) players.addExtra(", ");
+                        }
+                        players.addExtra(")");
+                        line.addExtra(" ");
+                        line.addExtra(players);
+                    } else {
+                        line.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
+                    }
+                    resultMap.put(x, line);
+                }
+                TextComponent header = new TextComponent("Addresses associated with ");
+                header.addExtra(Util.getPlayer(playerUniqueID));
+                header.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
+                Result result = new Result(header, resultMap, 9);
+                resultHashMap.put(getSenderUUID(commandSender), result);
+                commandSender.spigot().sendMessage(result.buildPage(1));
+            } else if (args[0].equalsIgnoreCase("ip") || args[0].equalsIgnoreCase("i") || args[0].equalsIgnoreCase("a")) {
                 InetAddress inetAddress;
                 try {
                     inetAddress = InetAddress.getByName(args[1]);
@@ -75,10 +111,25 @@ public class DigCommand implements CommandExecutor {
                     stringBuilder.delete(stringBuilder.length() - 1, stringBuilder.length());
                     commandSender.sendMessage(stringBuilder.toString());
                 }
+            } else if (args[0].equalsIgnoreCase("page") || args[0].equalsIgnoreCase("l")) {
+                if(!resultHashMap.containsKey(getSenderUUID(commandSender))) commandSender.sendMessage(ChatColor.WHITE+"Please lookup a player or an ip address before using this command.");
+                int page;
+                try {
+                    page = Integer.parseInt(args[1]);
+                } catch (Exception e) {
+                    commandSender.sendMessage(ChatColor.RED + args[1] + "is not a number.");
+                    return;
+                }
+                commandSender.spigot().sendMessage(resultHashMap.get(getSenderUUID(commandSender)).buildPage(page));
             } else {
                 commandSender.sendMessage(ChatColor.DARK_AQUA + "/dig <player|ip> <PlayerName|ip>");
             }
         });
         return true;
+    }
+
+    private UUID getSenderUUID(CommandSender sender) {
+        if (sender instanceof ConsoleCommandSender) return UUID.fromString("00000000-0000-0000-0000-000000000000");
+        else return ((Player) sender).getUniqueId();
     }
 }
