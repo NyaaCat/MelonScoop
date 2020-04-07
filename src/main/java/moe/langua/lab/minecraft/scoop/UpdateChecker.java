@@ -2,6 +2,8 @@ package moe.langua.lab.minecraft.scoop;
 
 import moe.langua.lab.minecraft.scoop.BootStrap;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -15,11 +17,26 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class UpdateChecker implements Listener {
-    BootStrap instance;
+    /*
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private Date BUILD_TIME = null;
+    {
+        InputStream input = getClass().getResourceAsStream("/plugin.yml");
+        FileConfiguration pluginYML = YamlConfiguration.loadConfiguration(new InputStreamReader(input));
+        try {
+            BUILD_TIME = simpleDateFormat.parse(pluginYML.getString("build"));
+        } catch (ParseException ignored) {}
+    }
+    */
+    private BootStrap instance;
     private boolean hasUpdate = false;
     private String latestVersion = "";
     private URL repoAPIURL = null;

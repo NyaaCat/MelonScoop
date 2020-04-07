@@ -1,5 +1,6 @@
 main: "moe.langua.lab.minecraft.scoop.BootStrap"
-version: ${project.version}
+version: "${project.version}"
+build: "${build.timestamp}"
 name: "MelonScoop"
 api-version: "1.13"
 commands:
