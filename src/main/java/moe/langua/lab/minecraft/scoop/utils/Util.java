@@ -3,6 +3,7 @@ package moe.langua.lab.minecraft.scoop.utils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
@@ -34,11 +35,11 @@ public class Util {
     private static TextComponent online;
     private static TextComponent offline;
     private static TextComponent banned;
-    public static TextComponent getPlayerTag(UUID uniqueID) {
-        OfflinePlayer player = getPlayer(uniqueID);
+
+    public static TextComponent getPlayerTag(OfflinePlayer player){
         TextComponent target = new TextComponent(player.getName());
         TextComponent hover = new TextComponent();
-        if (player.isBanned()) {
+        if (isBanned(player)) {
             target.setColor(ChatColor.RED);
             target.setStrikethrough(true);
             hover.addExtra(banned);
@@ -55,12 +56,21 @@ public class Util {
         return target;
     }
 
+    public static TextComponent getPlayerTag(UUID uniqueID) {
+        OfflinePlayer player = getPlayer(uniqueID);
+        return getPlayerTag(player);
+    }
+
     public static OfflinePlayer getPlayer(UUID uniqueID){
         OfflinePlayer target;
         if((target = Bukkit.getPlayer(uniqueID)) == null){
             target = Bukkit.getOfflinePlayer(uniqueID);
         }
         return target;
+    }
+
+    public static boolean isBanned(OfflinePlayer player){
+        return Bukkit.getServer().getBannedPlayers().contains(player);
     }
 
 }

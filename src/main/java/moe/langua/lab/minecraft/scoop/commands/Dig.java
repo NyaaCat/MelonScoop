@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Dig implements CommandExecutor {
     private HashMap<UUID, Result> resultHashMap = new HashMap<>();
@@ -44,31 +45,54 @@ public class Dig implements CommandExecutor {
                 UUID playerUniqueID;
                 if (Bukkit.getPlayerExact(args[1]) == null) {
                     OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
-                    if (!player.hasPlayedBefore()) {
-                        commandSender.sendMessage(ChatColor.RED + "Player " + args[1] + " not found.");
-                        return;
-                    }
                     playerUniqueID = player.getUniqueId();
                 } else {
                     playerUniqueID = Bukkit.getPlayerExact(args[1]).getUniqueId();
                 }
-                Map<Long, InetAddress> lookupResult = instance.lookup(playerUniqueID);
-                HashMap<Long, TextComponent> resultMap = new HashMap<>();
-                for (long x : lookupResult.keySet()) {
+                Map<Long, InetAddress> playerLookupResult = instance.lookup(playerUniqueID);
+
+                if (playerLookupResult.size() == 0) {
+                    commandSender.sendMessage(ChatColor.RED + "Player " + args[1] + " not found.");
+                    return;
+                }
+
+                HashMap<Long, TextComponent> resultComponentMap = new HashMap<>();
+
+                AtomicInteger complete = new AtomicInteger(0);
+
+                Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
+                    int total = playerLookupResult.size();
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    while (complete.get() < total) {
+                        commandSender.sendMessage(ChatColor.DARK_AQUA + "[MelonScoop] " + ChatColor.GRAY + "Searching...Please wait...(" + complete.get() + "/" + total + ")");
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+                for (long x : playerLookupResult.keySet()) {
                     TextComponent line = new TextComponent(" - ");
-                    line.addExtra(lookupResult.get(x).toString());
+                    line.addExtra(playerLookupResult.get(x).toString());
                     TextComponent date = new TextComponent("(" + instance.dateFormatter.format(new Date(x)) + ")");
                     date.setColor(net.md_5.bungee.api.ChatColor.GRAY);
                     date.setItalic(true);
                     line.addExtra(" ");
                     line.addExtra(date);
-                    HashMap<Long, UUID> playerMap = instance.lookup(lookupResult.get(x));
-                    if (playerMap.keySet().size() > 1) {
+                    HashMap<Long, UUID> timeToPlayerUUIDMap = instance.lookup(playerLookupResult.get(x));
+                    if (timeToPlayerUUIDMap.keySet().size() > 1) {
                         line.setColor(net.md_5.bungee.api.ChatColor.YELLOW);
                         TextComponent players = new TextComponent("(");
-                        List<Long> playerList = Util.asSortedList(instance.lookup(lookupResult.get(x)).keySet());
+                        List<Long> playerList = Util.asSortedList(timeToPlayerUUIDMap.keySet());
                         for (long l : playerList) {
-                            players.addExtra(Util.getPlayer(playerMap.get(l)));
+                            players.addExtra(Util.getPlayerTag(timeToPlayerUUIDMap.get(l)));
                             if (playerList.indexOf(l) + 1 != playerList.size()) players.addExtra(", ");
                         }
                         players.addExtra(")");
@@ -77,12 +101,13 @@ public class Dig implements CommandExecutor {
                     } else {
                         line.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
                     }
-                    resultMap.put(x, line);
+                    resultComponentMap.put(x, line);
+                    complete.addAndGet(1);
                 }
                 TextComponent header = new TextComponent("Addresses associated with ");
-                header.addExtra(Util.getPlayer(playerUniqueID));
+                header.addExtra(Util.getPlayerTag(playerUniqueID));
                 header.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
-                Result result = new Result(header, resultMap, 9);
+                Result result = new Result(header, resultComponentMap, 9);
                 resultHashMap.put(getSenderUUID(commandSender), result);
                 commandSender.spigot().sendMessage(result.buildPage(1));
             } else if (args[0].equalsIgnoreCase("ip") || args[0].equalsIgnoreCase("i") || args[0].equalsIgnoreCase("a")) {
@@ -112,7 +137,8 @@ public class Dig implements CommandExecutor {
                     commandSender.sendMessage(stringBuilder.toString());
                 }
             } else if (args[0].equalsIgnoreCase("page") || args[0].equalsIgnoreCase("l")) {
-                if(!resultHashMap.containsKey(getSenderUUID(commandSender))) commandSender.sendMessage(ChatColor.WHITE+"Please lookup a player or an ip address before using this command.");
+                if (!resultHashMap.containsKey(getSenderUUID(commandSender)))
+                    commandSender.sendMessage(ChatColor.WHITE + "Please lookup a player or an ip address before using this command.");
                 int page;
                 try {
                     page = Integer.parseInt(args[1]);
