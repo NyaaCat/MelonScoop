@@ -34,8 +34,8 @@ public class Util {
     private static TextComponent online;
     private static TextComponent offline;
     private static TextComponent banned;
-    public static TextComponent getPlayer(UUID uniqueID) {
-        OfflinePlayer player = Bukkit.getOfflinePlayer(uniqueID);
+    public static TextComponent getPlayerTag(UUID uniqueID) {
+        OfflinePlayer player = getPlayer(uniqueID);
         TextComponent target = new TextComponent(player.getName());
         TextComponent hover = new TextComponent();
         if (player.isBanned()) {
@@ -52,6 +52,14 @@ public class Util {
         TextComponent[] hovers = new TextComponent[1];
         hovers[0] = hover;
         target.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hovers));
+        return target;
+    }
+
+    public static OfflinePlayer getPlayer(UUID uniqueID){
+        OfflinePlayer target;
+        if((target = Bukkit.getPlayer(uniqueID)) == null){
+            target = Bukkit.getOfflinePlayer(uniqueID);
+        }
         return target;
     }
 
