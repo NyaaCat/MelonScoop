@@ -1,9 +1,9 @@
 package moe.langua.lab.minecraft.scoop.utils;
 
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
@@ -14,45 +14,44 @@ import java.util.UUID;
 
 public class Util {
     static {
-        TextComponent online = new TextComponent("Online");
-        online.setColor(ChatColor.GREEN);
-        Util.online = online;
-        TextComponent offline = new TextComponent("Offline");
-        offline.setColor(ChatColor.GRAY);
-        Util.offline = offline;
-        TextComponent banned = new TextComponent("Banned");
-        banned.setColor(ChatColor.RED);
-        Util.banned = banned;
+        TextComponent click_notice = new TextComponent("Click to Copy UUID");
+        click_notice.setColor(ChatColor.GRAY);
+        click_notice.setItalic(true);
+        click_notice.setStrikethrough(false);
+        Util.click_notice = click_notice;
     }
 
     //from https://stackoverflow.com/questions/740299/how-do-i-sort-a-set-to-a-list-in-java
     public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
         List<T> list = new ArrayList<T>(c);
         java.util.Collections.sort(list);
+        java.util.Collections.reverse(list);
         return list;
     }
 
-    private static TextComponent online;
-    private static TextComponent offline;
-    private static TextComponent banned;
+    private static TextComponent click_notice;
 
     public static TextComponent getPlayerTag(OfflinePlayer player){
         TextComponent target = new TextComponent(player.getName());
-        TextComponent hover = new TextComponent();
+        TextComponent hover = new TextComponent(player.getUniqueId().toString());
         if (isBanned(player)) {
             target.setColor(ChatColor.RED);
             target.setStrikethrough(true);
-            hover.addExtra(banned);
+            hover.setColor(ChatColor.RED);
+            hover.setStrikethrough(true);
         } else {
             if (player.isOnline()) {
-                hover.addExtra(online);
+                hover.setColor(ChatColor.GREEN);
             } else {
-                hover.addExtra(offline);
+                hover.setColor(ChatColor.WHITE);
             }
         }
+        hover.addExtra("\n");
+        hover.addExtra(click_notice);
         TextComponent[] hovers = new TextComponent[1];
         hovers[0] = hover;
         target.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hovers));
+        target.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,player.getUniqueId().toString()));
         return target;
     }
 

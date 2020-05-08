@@ -11,15 +11,16 @@ import java.util.List;
 public class Result {
     private final int size;
     private final int pageSize;
-    private HashMap<Long, TextComponent> resultMap;
-    private List<Long> sortedList;
     private final TextComponent header;
+    private final HashMap<Long, TextComponent> resultMap;
+    private final List<Long> sortedList;
 
     public Result(TextComponent headerContent, HashMap<Long, TextComponent> resultMap, int pageSize) {
         this.resultMap = resultMap;
         this.sortedList = Util.asSortedList(resultMap.keySet());
         this.pageSize = pageSize;
-        this.size = ((sortedList.size() / pageSize) + 1);
+        this.size = sortedList.size() % pageSize == 0
+                ? sortedList.size() / pageSize : ((sortedList.size() / pageSize) + 1);
         TextComponent header = new TextComponent();
         header.setColor(ChatColor.WHITE);
         header.addExtra("----- ");

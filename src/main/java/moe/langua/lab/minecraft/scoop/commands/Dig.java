@@ -69,7 +69,7 @@ public class Dig implements CommandExecutor {
                     }
 
                     while (complete.get() < total) {
-                        commandSender.sendMessage(ChatColor.DARK_AQUA + "[MelonScoop] " + ChatColor.GRAY + "Searching...Please wait...(" + complete.get() + "/" + total + ")");
+                        commandSender.sendMessage(ChatColor.DARK_AQUA + "[MelonScoop] " + ChatColor.GRAY + "Searching... Please wait...(" + complete.get() + "/" + total + ")");
                         try {
                             Thread.sleep(5000);
                         } catch (InterruptedException e) {

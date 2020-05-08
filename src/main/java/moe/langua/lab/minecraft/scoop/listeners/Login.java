@@ -33,8 +33,8 @@ public class Login implements Listener {
                 HashMap<Long, UUID> result = instance.lookup(event.getAddress());
                 if (result.size() > 0) {
                     StringBuilder stringBuilder = new StringBuilder();
-                    stringBuilder.append(ChatColor.YELLOW).append("============================================\n").append("WARNING! WARNING! WARNING! WARNING! WARNING!\n").append("============================================")
-                            .append("IP address of ").append(event.getName()).append(" (").append(inetAddress.toString()).append(")").append(" is associated with these players:\n");
+                    stringBuilder.append(ChatColor.YELLOW).append("============================================\n")
+                            .append("The IP address of new player ").append(event.getName()).append(" (").append(inetAddress.toString()).append(")").append(" is associated with registered player(s):\n");
                     ArrayList<Long> timeList = instance.sort(result.keySet());
                     for (long x : timeList) {
                         stringBuilder.append(ChatColor.YELLOW).append("    -").append(Bukkit.getOfflinePlayer(result.get(x)).getName()).append(ChatColor.GRAY).append(" (").append(instance.dateFormatter.format(new Date(x))).append(") ");
