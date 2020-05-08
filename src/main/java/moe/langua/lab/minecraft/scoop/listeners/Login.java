@@ -1,6 +1,7 @@
 package moe.langua.lab.minecraft.scoop.listeners;
 
 import moe.langua.lab.minecraft.scoop.BootStrap;
+import moe.langua.lab.minecraft.scoop.utils.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -37,7 +38,7 @@ public class Login implements Listener {
                             .append("The IP address of new player ").append(event.getName()).append(" (").append(inetAddress.toString()).append(")").append(" is associated with registered player(s):\n");
                     ArrayList<Long> timeList = instance.sort(result.keySet());
                     for (long x : timeList) {
-                        stringBuilder.append(ChatColor.YELLOW).append("    -").append(Bukkit.getOfflinePlayer(result.get(x)).getName()).append(ChatColor.GRAY).append(" (").append(instance.dateFormatter.format(new Date(x))).append(") ");
+                        stringBuilder.append(ChatColor.YELLOW).append("    -").append(Bukkit.getOfflinePlayer(result.get(x)).getName()).append(ChatColor.GRAY).append(" (").append(Util.dateFormatter.format(new Date(x))).append(") ");
                         if (Bukkit.getOfflinePlayer(result.get(x)).isBanned()) {
                             stringBuilder.append(ChatColor.RED).append("(Banned)");
                         }

@@ -36,10 +36,10 @@ public class Result {
             target.addExtra("Page " + page + "not found.");
         } else {
             target.addExtra(header);
-            int offset = page * pageSize - 1;
+            int offset = (page-1) * pageSize;
             for (int i = 0; i < pageSize; i++) {
-                if (sortedList.size() - 1 < offset - i) continue;
-                nextLine(target).addExtra(resultMap.get(sortedList.get(offset - i)));
+                if (sortedList.size() - 1 < offset + i) continue;
+                nextLine(target).addExtra(resultMap.get(sortedList.get(offset + i)));
             }
             nextLine(target).addExtra(getFooter(page));
         }

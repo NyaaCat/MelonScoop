@@ -28,7 +28,7 @@ public class Dig implements CommandExecutor {
     private static final Pattern IPV6_ADDRESS_REGEX_PATTERN = Pattern.compile(IPV6_ADDRESS_REGEX);
     */
 
-    private BootStrap instance;
+    private final BootStrap instance;
 
     public Dig(BootStrap instance) {
         this.instance = instance;
@@ -81,11 +81,9 @@ public class Dig implements CommandExecutor {
                 for (long x : playerLookupResult.keySet()) {
                     TextComponent line = new TextComponent(" - ");
                     line.addExtra(playerLookupResult.get(x).toString());
-                    TextComponent date = new TextComponent("(" + instance.dateFormatter.format(new Date(x)) + ")");
-                    date.setColor(net.md_5.bungee.api.ChatColor.GRAY);
-                    date.setItalic(true);
+
                     line.addExtra(" ");
-                    line.addExtra(date);
+                    line.addExtra(Util.getDateTag(x));
                     HashMap<Long, UUID> timeToPlayerUUIDMap = instance.lookup(playerLookupResult.get(x));
                     if (timeToPlayerUUIDMap.keySet().size() > 1) {
                         line.setColor(net.md_5.bungee.api.ChatColor.YELLOW);
@@ -106,7 +104,6 @@ public class Dig implements CommandExecutor {
                 }
                 TextComponent header = new TextComponent("Addresses associated with ");
                 header.addExtra(Util.getPlayerTag(playerUniqueID));
-                header.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
                 Result result = new Result(header, resultComponentMap, 9);
                 resultHashMap.put(getSenderUUID(commandSender), result);
                 commandSender.spigot().sendMessage(result.buildPage(1));
@@ -118,12 +115,25 @@ public class Dig implements CommandExecutor {
                     commandSender.sendMessage(args[1] + " is not a valid IP address.");
                     return;
                 }
-                HashMap<Long, UUID> result = instance.lookup(inetAddress);
-                if (result.size() == 0) {
+                HashMap<Long, UUID> lookupResult = instance.lookup(inetAddress);
+                if (lookupResult.size() == 0) {
                     commandSender.sendMessage(ChatColor.RED + "There is no player uses IP address " + inetAddress.toString() + " to login the server.");
-                } else if (result.size() == 1) {
-                    commandSender.sendMessage(ChatColor.DARK_AQUA + "IP address " + inetAddress.toString() + " is belongs to " + ChatColor.UNDERLINE + Bukkit.getOfflinePlayer((UUID) result.values().toArray()[0]).getName() + ChatColor.DARK_AQUA + ".");
                 } else {
+                    ArrayList<Long> sortedResultList = instance.sort(lookupResult.keySet());
+                    HashMap<Long,TextComponent> resultComponentMap = new HashMap<>();
+                    for(long x:sortedResultList){
+                        TextComponent component = new TextComponent(" - ");
+                        component.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
+                        component.addExtra(Util.getPlayerTag(lookupResult.get(x)));
+                        component.addExtra(" ");
+                        component.addExtra(Util.getDateTag(x));
+                        resultComponentMap.put(x,component);
+                    }
+                    TextComponent header = new TextComponent("Player(s) associated with "+inetAddress.toString());
+                    Result result = new Result(header,resultComponentMap,9);
+                    resultHashMap.put(getSenderUUID(commandSender),result);
+                    commandSender.spigot().sendMessage(result.buildPage(1));
+                    /*
                     StringBuilder stringBuilder = new StringBuilder();
                     stringBuilder.append(ChatColor.YELLOW).append("IP address ").append(inetAddress.toString()).append(" is associated with more than one players: \n");
                     ArrayList<Long> timeList = instance.sort(result.keySet());
@@ -135,6 +145,8 @@ public class Dig implements CommandExecutor {
                     }
                     stringBuilder.delete(stringBuilder.length() - 1, stringBuilder.length());
                     commandSender.sendMessage(stringBuilder.toString());
+
+                     */
                 }
             } else if (args[0].equalsIgnoreCase("page") || args[0].equalsIgnoreCase("l")) {
                 if (!resultHashMap.containsKey(getSenderUUID(commandSender)))

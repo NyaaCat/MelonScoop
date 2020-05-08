@@ -7,10 +7,8 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class Util {
     static {
@@ -21,12 +19,21 @@ public class Util {
         Util.click_notice = click_notice;
     }
 
+    public static final SimpleDateFormat dateFormatter = new SimpleDateFormat("MM/dd/yyyy");
+
     //from https://stackoverflow.com/questions/740299/how-do-i-sort-a-set-to-a-list-in-java
     public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
         List<T> list = new ArrayList<T>(c);
         java.util.Collections.sort(list);
         java.util.Collections.reverse(list);
         return list;
+    }
+
+    public static TextComponent getDateTag(long timeStampInMillSecond){
+        TextComponent date = new TextComponent("(" + dateFormatter.format(new Date(timeStampInMillSecond)) + ")");
+        date.setColor(net.md_5.bungee.api.ChatColor.GRAY);
+        date.setItalic(true);
+        return date;
     }
 
     private static TextComponent click_notice;

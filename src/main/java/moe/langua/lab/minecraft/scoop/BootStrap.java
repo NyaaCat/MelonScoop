@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import moe.langua.lab.minecraft.scoop.commands.Dig;
 import moe.langua.lab.minecraft.scoop.listeners.Login;
+import moe.langua.lab.minecraft.scoop.utils.Util;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -17,16 +18,15 @@ import java.util.zip.GZIPInputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class BootStrap extends JavaPlugin {
-    public SimpleDateFormat dateFormatter = new SimpleDateFormat("MM/dd/yyyy");
+public class BootStrap extends JavaPlugin{
 
     private BiMap<Integer, InetAddress> addressIndexMap;
     private BiMap<Integer, UUID> uniqueIDIndexMap;
     private Map<Integer, HashMap<Integer, Long>> addressToUniqueIDMap;
     private Map<Integer, HashMap<Integer, Long>> uniqueIDToAddressMap;
-    private Map<String, UUID> nameToUniqueIDMap = new HashMap<>();
+    private final Map<String, UUID> nameToUniqueIDMap = new HashMap<>();
     private static final int PLAYER_NAME_OFFSET = 33;
-    private Pattern UUID_REGEX_PATTERN = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+    private final Pattern UUID_REGEX_PATTERN = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
     @Override
     public void onEnable() {
@@ -80,7 +80,7 @@ public class BootStrap extends JavaPlugin {
         int read = 0;
         BufferedReader reader;
         for (long x : timeList) {
-            this.getLogger().info(ChatColor.DARK_AQUA +"Processing log file generated in "+dateFormatter.format(new Date(x))+" ("+(read++) + " out of "+ fileNumber + " completed)");
+            this.getLogger().info(ChatColor.DARK_AQUA +"Processing log file generated in "+ Util.dateFormatter.format(new Date(x))+" ("+(read++) + " out of "+ fileNumber + " completed)");
             File file = fileHashMap.get(x);
             if (!file.getName().endsWith(".gz")) {
                 reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), UTF_8));
