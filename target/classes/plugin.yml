@@ -1,0 +1,9 @@
+main: "moe.langua.lab.minecraft.scoop.BootStrap"
+version: "1.0.2"
+build: "2026-01-20T02:41:36Z"
+name: "MelonScoop"
+api-version: "1.13"
+commands:
+  dig:
+    usage: /dig <player|ip> <PlayerName|IPAddress>
+    permission: melonscoop.dig
